@@ -1,3 +1,5 @@
+#CONVERT TO DATE WITHOUT USING ANY READYMADE FUNCTIONS
+
 /*
 select cast(10000101 As DATE) ;
 set @new_date = cast('10000101' As DATE);
