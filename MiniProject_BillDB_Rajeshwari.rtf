@@ -1,0 +1,220 @@
+{\rtf1\ansi\ansicpg1252\deff0\nouicompat\deflang1033{\fonttbl{\f0\fnil\fcharset0 Calibri;}}
+{\*\generator Riched20 10.0.19041}\viewkind4\uc1 
+\pard\sa200\sl276\slmult1\f0\fs22\lang9 drop table Payment;\par
+drop table Orders;\par
+drop table Bill;\par
+drop table Product;\par
+drop table Doctor;\par
+drop table Customer;\par
+\par
+CREATE TABLE Customer (\par
+    cust_id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,\par
+    cust_name VARCHAR(50) NOT NULL,\par
+    address VARCHAR(100) NOT NULL,\par
+    phone VARCHAR(20) NOT NULL\par
+);\par
+  \par
+ CREATE TABLE Doctor (\par
+    doc_id VARCHAR(5) NOT NULL PRIMARY KEY,\par
+    doc_name VARCHAR(50) NOT NULL,\par
+    address VARCHAR(100) NOT NULL,\par
+    phone VARCHAR(20) NOT NULL\par
+);\par
+\par
+CREATE TABLE Product (\par
+    product_id VARCHAR(5) PRIMARY KEY,\par
+    product_Type VARCHAR(20),\par
+    product_name VARCHAR(50) NOT NULL,\par
+    company_name VARCHAR(50) NOT NULL,\par
+    curr_price DOUBLE NOT NULL,\par
+    quantity INT NOT NULL,\par
+    expiry_date DATE\par
+);\par
+  \par
+CREATE TABLE Bill (\par
+    bill_id VARCHAR(20) PRIMARY KEY,\par
+    bill_date DATE,\par
+    amount DOUBLE,\par
+    cust_id INT,\par
+    FOREIGN KEY (cust_id)\par
+        REFERENCES Customer (cust_id),\par
+    doc_id VARCHAR(5),\par
+    FOREIGN KEY (doc_id)\par
+        REFERENCES Doctor (doc_id)\par
+);\par
+\par
+CREATE TABLE Orders (\par
+    bill_id VARCHAR(20),\par
+    FOREIGN KEY (bill_id)\par
+        REFERENCES Bill (bill_id),\par
+    product_id VARCHAR(5),\par
+    FOREIGN KEY (product_id)\par
+        REFERENCES Product (product_id),\par
+    pro_quantity INT,\par
+    sold_price DOUBLE\par
+);\par
+    \par
+CREATE TABLE Payment (\par
+    payment_id VARCHAR(5) PRIMARY KEY,\par
+    payment_mode VARCHAR(20),\par
+    bill_id VARCHAR(20),\par
+    FOREIGN KEY (bill_id)\par
+        REFERENCES Bill (bill_id)\par
+);\par
+\par
+INSERT INTO Customer VALUES(1,'Rajeshwari','Ahmednagar','9890523327');\par
+INSERT INTO Customer(cust_name,address,phone) VALUES('Raghu','Pune','9975203327'),('Pranav','Ahmendnagar','9527731056'),('Aishu','Nashik','9730684242'),('Santosh','Pali','9309103817');\par
+\par
+SELECT * FROM Customer;\par
+\par
+INSERT INTO Doctor VALUES('D1','smita','Ahmednagar','9987654208');\par
+INSERT INTO Doctor VALUES('D2','Ram','Ahmednagar','9987654345'),('D3','Ramesh','Pune','9987654123');\par
+\par
+SELECT * FROM Doctor;\par
+\par
+INSERT INTO Product VALUES ('P1','Tablet','Montar-LC','Cipla',20.00,30,'2025-04-20'), ('P2','Tablet','Cifixime','JSK',40.00,20,'2023-04-20'),\par
+('P3','Syrup','cough-syrup','Cipla',150.00,10,'2024-04-20'),('P4','Tablet','Crocine','JSK',10.00,5,'2023-10-20'),\par
+('P5','Syrup','Broxovic','Vibcare',240.00,20,'2023-06-20');\par
+\par
+\par
+SELECT * FROM Product;\par
+\par
+INSERT INTO Bill VALUES ('BIL/20230110/0001','2023-01-10',200.00,1,'D1'),\par
+\tab ('BIL/20230108/0001','2023-01-08',150.00,1,'D2'),('BIL/20230110/0002','2023-01-10',50.00,2,'D2');\par
+\par
+SELECT * FROM Bill;\par
+\par
+INSERT INTO Orders VALUES ('BIL/20230110/0001','P1',4,20.00), ('BIL/20230110/0001','P2',3,40.00), ('BIL/20230108/0001','P3',1,150.00), ('BIL/20230110/0002','P4',1,10.00),('BIL/20230110/0002','P2',1,40.00);\par
+\par
+SELECT * FROM Orders;\par
+\par
+INSERT INTO Payment VALUES ('PA101','cash','BIL/20230110/0001'),('PA102','Credit card','BIL/20230108/0001'),('PA103','UPI','BIL/20230110/0002');\par
+\par
+SELECT * FROM payment;\par
+\par
+\par
+/*1. Create SP to insert Customer Data if not exists. Customer existence should be based on \par
+mobile no. Returns customer id (auto-generated).*/\par
+\par
+drop procedure CustomerInsert;\par
+DELIMITER //\par
+CREATE PROCEDURE `CustomerInsert` (in new_name varchar(30), in new_address varchar(30), in new_phone varchar(10))\par
+BEGIN\par
+if new_phone not in (select phone from Customer)\par
+then\par
+insert into Customer(cust_name,address,phone) values(new_name,new_address,new_phone);\par
+end if;\par
+select cust_id from Customer where new_phone = phone;\par
+END;//\par
+\par
+call CustomerInsert('Amit','Shrigondha','9921012725');\par
+call CustomerInsert('Rajeshwari','Ahmednagar','9890523327');\par
+SELECT * FROM Customer;\par
+\par
+\par
+/*2. Create a function to return Bill No to be used. BIL/YYYYMMDD/xxxx (where xxxx is 0001 to 9999).*/\par
+\par
+drop procedure DisplayBillNO;\par
+DELIMITER //\par
+CREATE PROCEDURE `DisplayBillNO` ( in new_billDate date)\par
+BEGIN\par
+\tab declare sub int default 0; \par
+    \par
+     if(select bill_id from Bill where amount is null and bill_date = new_billDate)is not null then\par
+\tab set sub = substr((select max(bill_id) from Bill where bill_date = new_billDate),-1,4);\par
+\tab\par
+    else\par
+    set sub = (select coalesce(max(substr(bill_id,-1,4)),0)+1 from Bill where bill_date=new_billDate);\par
+      insert into Bill(bill_id,bill_date) values((select concat('BIL/',date_format(new_billDate,'%Y%m%d'),'/',lpad(sub,4,0))),new_billDate);\par
+\par
+   end if;\par
+\par
+    select * from Bill where amount is NULL and bill_date = new_billDate;\par
+END;//\par
+call DisplayBillNO('2023-01-10'); \par
+\par
+\par
+\par
+/*3. Create SP to insert line items one by one. Return total amount during each insertion.*/\par
+\par
+drop procedure OrderPlaced;\par
+DELIMITER //\par
+CREATE PROCEDURE `OrderPlaced` (in new_billId varchar(20), in new_productId varchar(5), in new_proQuantity int,in new_custId int,in new_docId varchar(5))\par
+BEGIN\par
+\tab declare total int default 0;\par
+   declare amt int;\par
+   set amt = (select curr_price from Product where product_id =new_productId);\par
+   \par
+   insert into Orders values(new_billId,new_productId,new_proQuantity,amt);\par
+\tab set total =new_proQuantity * amt ;\par
+     \par
+     if(select amount from Bill where bill_id = new_billId) is null then\par
+     update Bill set amount = total where bill_id =new_billId; \par
+\par
+    else\par
+\tab update Bill set amount = (amount +total) where bill_id =new_billId; \par
+   end if;\par
+\tab\par
+    update Bill set cust_id = new_custId, doc_id = new_docId where bill_id = new_billID;\par
+    select * from Bill ;\par
+END;//\par
+\par
+call OrderPlaced('BIL/20230110/0003','P3',3,2,'D1');\par
+call OrderPlaced('BIL/20230110/0003','P4',1,2,'D2');\par
+select * from Orders;\par
+\par
+/*4. Use trigger/SP to reduce stock inventory.*/\par
+ \par
+drop trigger InventoryStock;\par
+ DELIMITER //  \par
+CREATE TRIGGER InventoryStock BEFORE INSERT  \par
+ON Orders FOR EACH ROW  \par
+BEGIN  \par
+\par
+if (select quantity from Product where Product.product_id = new.product_id )< new.pro_quantity then\par
+\tab signal sqlstate '45000' \par
+    set message_text ='Not valid quantity';\par
+else\par
+   update Product set quantity = quantity - new.pro_quantity where Product.product_id = new.product_id;\par
+ end if;\par
+END;// \par
+\par
+\par
+/*5. Create SP to display top 10 items sold by date/by month. Top 10 by no. of items and monetary value.*/\par
+\par
+/*date wise*/\par
+drop procedure DisplayProduct;\par
+DELIMITER //\par
+CREATE PROCEDURE `DisplayProduct` (in new_date date)\par
+BEGIN\par
+select Orders.product_id ,Product.product_name,sum(pro_quantity) as Quantity_sold from Orders join Bill on Orders.bill_id = Bill.bill_id join Product on Orders.product_id = Product.product_id where Bill.bill_date = new_date group by product_id order by Quantity_sold desc limit 10;\par
+END;//\par
+call DisplayProduct('2023-01-10');\par
+\par
+\par
+/*by monetary*/\par
+drop procedure DisplayProductByMoney;\par
+DELIMITER //\par
+CREATE PROCEDURE `DisplayProductByMoney` ()\par
+BEGIN\par
+select Orders.product_id ,Product.product_name,sum(sold_price * pro_quantity) as Sold_Price from Orders join Product on Orders.product_id = Product.product_id  group by product_id order by Sold_Price desc limit 10;\par
+END;//\par
+call DisplayProductByMoney();\par
+\par
+\par
+/*6. Create SP to display items nearing expiry (less than 5 months, 4 months, 3....so on).*/\par
+\par
+drop procedure DisplayProductByExpiry;\par
+DELIMITER //\par
+CREATE PROCEDURE `DisplayProductByExpiry` ()\par
+BEGIN\par
+select period_diff(date_format(expiry_date,'%y%m'),date_format(curdate(),'%y%m'))as mnthsTOExpire, product_name from Product order by mnthsTOExpire;\par
+END;//\par
+call DisplayProductByExpiry();\par
+\par
+\par
+/*7. Create SP/view to display items nearing out of stock. (less than 10).*/\par
+CREATE VIEW OutOFStock AS select * from Product where quantity <=10;\par
+select * from OutOFStock;\par
+}
+ 

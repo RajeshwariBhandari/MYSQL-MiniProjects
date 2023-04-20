@@ -1,0 +1,415 @@
+{\rtf1\ansi\ansicpg1252\deff0\nouicompat\deflang1033{\fonttbl{\f0\fnil\fcharset0 Calibri;}}
+{\*\generator Riched20 10.0.19041}\viewkind4\uc1 
+\pard\sa200\sl276\slmult1\f0\fs22\lang9 use smallbazar;\par
+\par
+drop table payment;\par
+drop table delivery;\par
+drop table Orders;\par
+drop table branch_product;\par
+drop table Product;\par
+drop table Branch;\par
+drop table Country;\par
+drop table Customer;\par
+\par
+CREATE TABLE Customer (\par
+    cust_id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,\par
+    cust_name VARCHAR(50) NOT NULL,\par
+    address VARCHAR(100) NOT NULL,\par
+    phone VARCHAR(20) NOT NULL\par
+);\par
+\par
+CREATE TABLE Country (\par
+    country_id INT PRIMARY KEY AUTO_INCREMENT,\par
+    country_name VARCHAR(10)\par
+);\par
+\par
+CREATE TABLE Branch (\par
+    branch_id INT PRIMARY KEY AUTO_INCREMENT,\par
+    location VARCHAR(10),\par
+    branch_status VARCHAR(10),\par
+    country_id INT,\par
+    FOREIGN KEY (country_id)\par
+        REFERENCES Country (country_id)\par
+);\par
+\par
+CREATE TABLE Product (\par
+    product_id INT PRIMARY KEY AUTO_INCREMENT,\par
+    product_name VARCHAR(20),\par
+    quantity INT,\par
+    amount DOUBLE\par
+);\par
+\par
+CREATE TABLE Branch_Product (\par
+    branch_id INT,\par
+    FOREIGN KEY (branch_id)\par
+        REFERENCES Branch (branch_id),\par
+    product_id INT,\par
+    FOREIGN KEY (product_id)\par
+        REFERENCES Product (product_id),\par
+    cost_price DOUBLE,\par
+    selling_price DOUBLE,\par
+    quantity INT\par
+);\par
+\par
+CREATE TABLE Orders (\par
+    order_id INT PRIMARY KEY AUTO_INCREMENT,\par
+    order_date DATE,\par
+    quantity INT,\par
+    amount DOUBLE,\par
+    no_of_bags INT,\par
+    extra_charges DOUBLE,\par
+    branch_id INT,\par
+    FOREIGN KEY (branch_id)\par
+        REFERENCES Branch (branch_id),\par
+    product_id INT,\par
+    FOREIGN KEY (product_id)\par
+        REFERENCES Product (product_id),\par
+    cust_id INT,\par
+    FOREIGN KEY (cust_id)\par
+        REFERENCES Customer (cust_id)\par
+);\par
+\par
+CREATE TABLE Delivery (\par
+    delivery_id INT PRIMARY KEY AUTO_INCREMENT,\par
+    delivery_option VARCHAR(20),\par
+    charges DOUBLE,\par
+    cust_id INT,\par
+    FOREIGN KEY (cust_id)\par
+        REFERENCES Customer (cust_id),\par
+    branch_id INT,\par
+    FOREIGN KEY (branch_id)\par
+        REFERENCES Branch (branch_id),\par
+    order_id INT,\par
+    FOREIGN KEY (order_id)\par
+        REFERENCES Orders (order_id)\par
+);\par
+\par
+CREATE TABLE Payment (\par
+    payment_id INT PRIMARY KEY AUTO_INCREMENT,\par
+    payment_amount DOUBLE,\par
+    order_id INT,\par
+    FOREIGN KEY (order_id)\par
+        REFERENCES Orders (order_id),\par
+    delivery_id INT,\par
+    FOREIGN KEY (delivery_id)\par
+        REFERENCES Delivery (delivery_id)\par
+);\par
+\par
+insert into Customer values('1','Rajeshwari','Ahmednagar','9975203327');\par
+insert into Customer(cust_name,address,phone) values('Aishu','Ahmednagar','9730684242'),('Santosh','Pune','9890523327'),('Akash','Pune','9309103817');\par
+\par
+SELECT \par
+    *\par
+FROM\par
+    Customer;\par
+\par
+insert into Country values(11,'India');\par
+insert into Country(country_name) values ('Germany'),('France');\par
+SELECT \par
+    *\par
+FROM\par
+    Country;\par
+\par
+insert into Branch values(111,'Pune','Active',11);\par
+insert into Branch (location,branch_status,country_id) values('Ahmednagar','Active',11),('Nashik','Deactive',11),('Berlin','Deactive',12),('Hamburg','Active',12),('Paris','Deactive',13),('cannes','Active',13);\par
+SELECT \par
+    *\par
+FROM\par
+    Branch;\par
+\par
+insert into Product values (1111,'Soap',50,120.00);\par
+insert into Product (product_name,quantity,amount) values('Shampoo',20,35.00),('Oil',10,20.00),('Biscuits',5,10.00),('Choclates',20,40.00);\par
+SELECT \par
+    *\par
+FROM\par
+    Product;\par
+\par
+insert into branch_product values (111,1112,35.00,40.00,2),(111,1113,20.00,22.00,5),(111,1114,10.00,15.00,2),\par
+\tab (112,1111,120.00,123.00,5),(112,1115,40.00,45.00,10),(115,1112,35.00,35.00,3),(115,1115,40.00,45.00,8);\par
+SELECT \par
+    *\par
+FROM\par
+    branch_product;\par
+\par
+insert into Orders values(222,'2023-01-16',1,120.00,2,10.00,111,1113,1);\par
+insert into Orders (order_date,quantity,amount,no_of_bags,extra_charges,branch_id,product_id,cust_id)\par
+\tab values('2023-01-16',1,40.00,0,0,111,1112,1),('2022-05-23',2,80.00,0,0,112,1111,2),('2022-07-12',3,105.00,1,5.00,115,1112,4);\par
+SELECT \par
+    *\par
+FROM\par
+    Orders;\par
+\par
+insert into delivery values(444,'Home delivery',100.00,1,111,222);\par
+insert into delivery (delivery_option,charges,cust_id,branch_id,order_id) values('Self-picked',0.00,2,112,224),\par
+('Home delivery',250.00,3,115,225),('self-picked',0.00,1,111,223),('Home delivery',300.00,1,112,226);\par
+SELECT \par
+    *\par
+FROM\par
+    delivery;\par
+\par
+insert into Payment values(555,230.00,222,444);\par
+insert into payment (payment_amount,order_id,delivery_id) values(40.00,223,444),(110.00,224,445);\par
+SELECT \par
+    *\par
+FROM\par
+    payment;\par
+\par
+\par
+/*\par
+1. The CEO of \lquote Small Bazar\rquote  wants to check the profitability of the Branches. Create a View\par
+for his use which will show monthly Profit of all Branches for the current year.*/\par
+\par
+#It shows branch location with profit for each month of current year using curdate() here it is for 2023\par
+\par
+drop view BranchProfit;\par
+CREATE VIEW BranchProfit AS\par
+    SELECT \par
+        branch_product.branch_id,\par
+        branch.location,\par
+        SUM((selling_price - cost_price) * orders.quantity) AS profit,\par
+        MONTHNAME(orders.order_date) AS months\par
+    FROM\par
+        branch_product\par
+            JOIN\par
+        Orders ON branch_product.branch_id = Orders.branch_id and branch_product.product_id = orders.product_id\par
+            JOIN\par
+        branch ON branch_product.branch_id = branch.branch_id\par
+    WHERE\par
+        YEAR(orders.order_date) = YEAR(CURDATE())\par
+    GROUP BY months , branch_product.branch_id;\par
+ \par
+ select * from BranchProfit;\par
+\par
+/*\par
+2. Create a stored procedure having countryName, FromDate and ToDate as Parameter,\par
+which will return Sitewise, Item Wise and Date Wise the number of items sold in the\par
+given Date range as separate resultsets. Create appropriate Indexes on the tables.\par
+*/\par
+\par
+# It shows quantity which is sold branch wise between date passed country name which you passed\par
+\par
+drop procedure DisplayItemsSold;\par
+DELIMITER //\par
+CREATE PROCEDURE `DisplayItemsSold` (in new_country_name varchar(20), in from_date date,in to_date date )\par
+BEGIN\par
+\par
+SELECT \par
+    SUM(orders.quantity) AS quantity_sold, branch.location\par
+FROM\par
+    orders\par
+        JOIN\par
+    branch ON branch.branch_id = orders.branch_id\par
+        JOIN\par
+    country ON branch.country_id = country.country_id\par
+WHERE\par
+    orders.order_date BETWEEN from_date AND to_date\par
+        AND country.country_name = new_country_name\par
+GROUP BY orders.branch_id;\par
+\par
+\par
+SELECT \par
+    SUM(orders.quantity) AS quantity_sold, orders.product_id\par
+FROM\par
+    orders\par
+        JOIN\par
+    branch ON orders.branch_id = branch.branch_id\par
+        JOIN\par
+    country ON branch.country_id = country.country_id\par
+WHERE\par
+    orders.order_date BETWEEN from_date AND to_date\par
+        AND country.country_name = new_country_name\par
+GROUP BY orders.product_id;\par
+\par
+SELECT \par
+    SUM(orders.quantity) AS quantity_sold, orders.order_date\par
+FROM\par
+    orders\par
+        JOIN\par
+    branch ON orders.branch_id = branch.branch_id\par
+        JOIN\par
+    country ON branch.country_id = country.country_id\par
+WHERE\par
+    orders.order_date BETWEEN from_date AND to_date\par
+        AND country.country_name = new_country_name\par
+GROUP BY orders.order_date;\par
+\par
+END;//\par
+select * from orders;\par
+\par
+call DisplayItemsSold('India','2022-01-01','2023-01-20');\par
+call DisplayItemsSold('Germany','2022-01-01','2023-01-01');\par
+\par
+\par
+/*3. Create a stored procedure which will calculate the total bill for any order. Bill should\par
+have details like:\par
+CustomerName,\par
+orderId,\par
+OrderDate,\par
+Branch,\par
+ProductName,\par
+Price per Unit,\par
+No. Of Units,\par
+Total Cost of that product,\par
+Total Bill Amount,\par
+Additional Charges (0 if none),\par
+Delivery Option (\lquote Home Delivery&#39; or \lquote self-Pickup\rquote ).\par
+*/\par
+\par
+select * from orders;\par
+select * from delivery;\par
+SELECT \par
+    customer.cust_name,\par
+    orders.order_id,\par
+    orders.order_date,\par
+    branch.location,\par
+    product.product_name,\par
+    branch_product.selling_price,\par
+    orders.quantity,\par
+    (branch_product.selling_price * orders.quantity) AS TotalProductCost,\par
+    orders.extra_charges,\par
+    (branch_product.selling_price * orders.quantity) + extra_Charges AS BillAmount,\par
+    delivery.delivery_option\par
+FROM\par
+    orders\par
+        JOIN\par
+    branch_product ON orders.product_id = branch_product.product_id\par
+        AND orders.branch_id = branch_product.branch_id\par
+        JOIN\par
+    product ON orders.product_id = product.product_id\par
+        JOIN\par
+    branch ON branch.branch_id = branch_product.branch_id\par
+        JOIN\par
+    customer ON customer.cust_id = orders.cust_id\par
+\tab\tab JOIN\par
+\tab delivery on delivery.order_id = orders.order_id ;\par
+\par
+\par
+/*4. Create a (function) Procedure having a parameter as country name, which displays all\par
+the branches available in the country that are active.*/\par
+\par
+#shows active branch for passed country name\par
+\par
+drop procedure DisplayActiveBranch;\par
+DELIMITER //\par
+CREATE PROCEDURE `DisplayActiveBranch` (in new_country_name varchar(20) )\par
+BEGIN\par
+SELECT \par
+    location\par
+FROM\par
+    Branch\par
+        JOIN\par
+    country ON branch.country_id = country.country_id\par
+WHERE\par
+    branch_Status = 'Active'\par
+        AND country_name = new_country_name;\par
+END;//\par
+\par
+call DisplayActiveBranch('India');\par
+\par
+\par
+/*5. The CEO of \lquote Small Bazar\rquote  wants to check the profitability of the Branches. Create a\par
+stored procedure that shows the branch profit if profit is below a certain threshold flag\par
+that branch as below par performance.\par
+*/\par
+#Gives branch location with profit he gains in ascending order so you can have less profit having low performance\par
+\par
+drop procedure LowPerformance;\par
+DELIMITER //\par
+CREATE PROCEDURE `LowPerformance` ()\par
+BEGIN\par
+SELECT \par
+    branch.location, SUM((selling_price - cost_price) * orders.quantity) AS profit\par
+FROM\par
+      branch_product\par
+            JOIN\par
+        Orders ON branch_product.branch_id = Orders.branch_id and branch_product.product_id = orders.product_id\par
+            JOIN\par
+        branch ON branch_product.branch_id = branch.branch_id\par
+GROUP BY branch_product.branch_id order by profit;\par
+\par
+END;//\par
+\par
+call LowPerformance();\par
+\par
+/*6.find out country where people are using least plastic bag while they are shopping.*/\par
+\par
+#Shows country name with number of plastic bags are used in that country\par
+\par
+SELECT \par
+    country_name, sum(no_of_bags) AS no_of_plastic_bags\par
+FROM\par
+    Country\par
+        JOIN\par
+    branch ON country.country_id = branch.country_id\par
+        JOIN\par
+    Orders ON orders.branch_id = branch.branch_id\par
+GROUP BY country_name order by no_of_plastic_bags;\par
+\par
+\par
+/*7. Many business owners focus only on customer acquisition, but customer retention can\par
+also drive loyalty, word of mouth marketing, and higher order values. But CEO want to know if\par
+when a customer shops if he is new customer or old customer, if old customer keep count of\par
+that customer visited small bazar regardless or branch, city, country\par
+If customer shops more than 10 times\par
+Give me privilege customer category*/\par
+\par
+#gives customer name who shops more than twice instead of 2 we can take here 10 for 10 times\par
+SELECT \par
+    cust_name, COUNT(Orders.cust_id) AS Times\par
+FROM\par
+    customer\par
+        JOIN\par
+    orders ON customer.cust_id = orders.cust_id\par
+GROUP BY Orders.cust_id\par
+HAVING Times >= 2;\par
+\par
+#OPTIONAL QUESTIONS\par
+/*Write a Trigger which will reduce the stock of some product whenever an order is confirmed by\par
+the number of that product in the order. E.g. If an order with 10 Oranges is confirmed from\par
+Nagpur branch, Stock of Oranges from Nagpur branch must be reduced by 10.*/\par
+\par
+drop trigger ReduceStock;\par
+DELIMITER //  \par
+CREATE TRIGGER ReduceStock after INSERT  \par
+ON Orders FOR EACH ROW  \par
+BEGIN  \par
+if (select quantity from branch_product where branch_product.product_id = new.product_id )< new.quantity then\par
+\tab signal sqlstate '45000' \par
+    set message_text ='Stock is not available';\par
+else\par
+   update branch_product set quantity = quantity - new.quantity where branch_product.product_id = new.product_id;\par
+end if;\par
+END;// \par
+\par
+\par
+#valid entry\par
+insert into Orders (order_date,quantity,amount,no_of_bags,extra_charges,branch_id,product_id,cust_id)\par
+\tab values('2023-03-23',2,90.00,0,0,112,1115,1);\par
+\par
+#stock is not available\par
+insert into Orders (order_date,quantity,amount,no_of_bags,extra_charges,branch_id,product_id,cust_id)\par
+\tab values('2023-03-23',3,45.00,0,0,111,1114,3);\par
+\par
+\par
+/*Create a trigger which will be invoked on adding a new item in the Item entity and insert that\par
+new item in another table with date and time when the item is added so that we can have date\par
+and time when an item was added.*/\par
+\par
+alter table product add last_update datetime;\par
+\par
+\par
+drop trigger lastUpdatedProduct;\par
+DELIMITER //  \par
+CREATE TRIGGER lastUpdatedProduct before INSERT  \par
+ON Product FOR EACH ROW  \par
+BEGIN  \par
+declare updated_time datetime;\par
+declare last_update datetime;\par
+\tab set updated_time = current_timestamp();\par
+   set new.last_update = updated_time;\par
+\par
+END;// \par
+\par
+insert into Product (product_name,quantity,amount) values('Sugar',100,50.00);\par
+}
+ 
